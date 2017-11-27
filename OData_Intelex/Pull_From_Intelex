@@ -1,0 +1,21 @@
+import requests
+from xml.etree import ElementTree as ET
+
+url = intelexurl
+
+response = requests.get(url, auth=(username,password))
+
+#print(response.content)
+
+tree = ET.fromstring(response.content)
+
+for child in tree:
+    for kid in child:
+        for babby in kid:
+            for element in babby:
+                print element.tag
+                print element.text
+
+
+#This code will print the tag (column header) and text (cell contents) from the odata url provided from the intelex report - this assumes nesting is consistent across reports
+#This can be integrated with pandas or other methods to extract the data in tabular format and do further processing
