@@ -1,0 +1,49 @@
+import swigpython3 as pilotbase  # for bare-metal stuff
+import pilotpython  # nicer python classes
+import requests
+from xml.etree import ElementTree as ET
+
+
+def onInitialize(ctxt):
+    context = pilotpython.Context(ctxt)
+    return pilotpython.READY_FOR_INPUT_OR_NEW_DATA
+
+
+def onProcess(ctxt, dr):
+    # First Bit here is pilot required, probably#
+    context = pilotpython.Context(ctxt)
+    data = pilotpython.DataRecord(dr)
+    props = data.getProperties()
+    # https://clients.intelex.com/Login3/Monsanto/api/odata/Forms/DataDefinition/4de1c1dd-1f0c-44fe-a105-ec5e9fc96839/Data
+    url = '$(Intelex URL)' + '/Data'
+
+    response = requests.get(url, auth=('$(Intelex USER)', '$(Intelex PASSWORD)'))
+
+    tree = ET.fromstring(response.content)
+
+    for child in tree:
+        for kid in child:
+            for babby in kid:
+                # addrecord bit here means the entire record gets added as one branch on the root, or leaf, or whatever
+                addRecord = context.makeNewNode()
+                addRecord.setName('record')
+                for element in babby:
+                    x = element.tag[element.tag.find('}') + 1:].replace('_x0020_', ' ')
+                    x = x.replace('_x002F_', '/')
+                    x = x.replace('_x003F_', '?')
+                    y = element.text
+                    # This next bit creates heirarchy of nonsense based on the addRecord defined in prior step
+                    props.defineStringProperty(x, y)
+                    addRecord.getProperties().defineStringProperty(x, y)
+                    root = data.getRoot()
+                    root.appendChild(addRecord)
+
+    return pilotpython.READY_FOR_INPUT_OR_NEW_DATA
+
+
+def onFinalize(ctxt):
+    context = pilotpython.Context(ctxt)
+    None
+
+
+##Script pulls intelex table and appends to a tree data structure on the record - this can be subsequently flattened in pilot
