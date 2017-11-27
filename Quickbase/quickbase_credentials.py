@@ -4,7 +4,7 @@ import requests
 from xml.etree import ElementTree as ET
 
 def get_creds():
-    r = requests.get('https://seedbin.quickbase.com/db/main?a=API_Authenticate&username='+username+'&password='+password+'Mw280381&hours=24')
+    r = requests.get('https://'+resourcename+'.quickbase.com/db/main?a=API_Authenticate&username='+username+'&password='+password+'Mw280381&hours=24')
 
     tree = ET.fromstring(r.content)
 
